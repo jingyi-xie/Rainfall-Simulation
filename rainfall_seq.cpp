@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Rean input
-    vector<vector<int> > input = readFile("sample_4x4.in");
+    vector<vector<int> > input = readFile(argv[5]);
 
     // Start simulation
     
