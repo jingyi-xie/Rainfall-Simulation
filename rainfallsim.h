@@ -121,7 +121,18 @@ void RainfallSim::startSim() {
 }
 
 void RainfallSim::generateOutput() {
-
+    cout << "Rainfall simulation completed in " << this->timeSteps << " time steps\n";
+    cout << "Runtime = xxx seconds\n";
+    cout << "The following grid shows the number of raindrops absorbed at each point:\n";
+    for (int i = 0; i < this->N; i++) {
+        for (int j = 0; j < this->N; j++) {
+            cout << this->landscape[i][j].getAbsorbedDrops();
+            if (j != this->N - 1) {
+                cout << " ";
+            }
+        }
+        cout << endl;
+    }
 }
 
 
