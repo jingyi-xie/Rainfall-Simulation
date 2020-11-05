@@ -4,14 +4,15 @@ using namespace std;
 
 class RainfallSim {
     private:
-        int P, M, A, N;
+        int P, M, N;
+        float A;
         int timeSteps;
         int totalRainfall;
         int totalAbsorbed;
         vector<vector<Point> > landscape;
 
     public:
-        RainfallSim(int P, int M, int A, int N, vector<vector<int> > input);
+        RainfallSim(int P, int M, float A, int N, vector<vector<int> > input);
         ~RainfallSim();
 
         // Call at start and end of simulation

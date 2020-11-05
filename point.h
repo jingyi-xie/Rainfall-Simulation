@@ -4,8 +4,8 @@ using namespace std;
 class Point {
     private:
         int elevation;
-        int remainingDrops;
-        int absorbedDrops;
+        float remainingDrops;
+        float absorbedDrops;
         vector<pair<int, int> > neighbors;
 
     public:
@@ -17,9 +17,9 @@ class Point {
 
         // Setters
         void receiveFromSky();
-        void receiveFromNeighbor(int amount);
-        void giveToNeighbor(int amount);
-        void absorb(int amount);
+        void receiveFromNeighbor(float amount);
+        void giveToNeighbor(float amount);
+        void absorb(float amount);
 
         // Getters
         int getElevation();
@@ -48,15 +48,15 @@ void Point::receiveFromSky() {
     remainingDrops++;
 }
 
-void Point::receiveFromNeighbor(int amount) {
+void Point::receiveFromNeighbor(float amount) {
     remainingDrops += amount;
 }
 
-void Point::giveToNeighbor(int amount) {
+void Point::giveToNeighbor(float amount) {
     remainingDrops -= amount;
 }
 
-void Point::absorb(int amount) {
+void Point::absorb(float amount) {
     absorbedDrops += amount;
 }
 
