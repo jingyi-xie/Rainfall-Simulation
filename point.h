@@ -6,6 +6,7 @@ class Point {
         int elevation;
         float remainingDrops;
         float absorbedDrops;
+        float trickleAmount;
         vector<pair<int, int> > neighbors;
 
     public:
@@ -20,12 +21,15 @@ class Point {
         void receiveFromNeighbor(float amount);
         void giveToNeighbor(float amount);
         void absorb(float amount);
+        void setTrickleAmount(float amount);
 
         // Getters
         int getElevation();
         int getRemainingDrops();
         int getAbsorbedDrops();
         vector<pair<int, int> > getNeighbors();
+        float getTrickleAmount(float amount);
+
 };
 
 
@@ -58,6 +62,11 @@ void Point::giveToNeighbor(float amount) {
 
 void Point::absorb(float amount) {
     absorbedDrops += amount;
+    remainingDrops -= amount;
+}
+
+void Point::setTrickleAmount(float amount) {
+    trickleAmount = amount;
 }
 
 // ========== Getters ========== //
@@ -75,4 +84,8 @@ int Point::getAbsorbedDrops() {
 
 vector<pair<int, int> > Point::getNeighbors() {
     return neighbors;
+}
+
+float Point::getTrickleAmount() {
+    return trickleAmount;
 }

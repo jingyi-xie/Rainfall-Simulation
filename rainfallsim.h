@@ -1,6 +1,5 @@
 #include <vector>
 #include <point.h>
-#include <limits.h>
 
 using namespace std;
 
@@ -38,6 +37,7 @@ RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > inpu
     this->A = A;
     this->N = N;
     this->timeSteps = 0;
+
     // populate landscape
     const int dx[] = {0, 1, 0, -1};
     const int dy[] = {-1, 0, 1, 0};
@@ -46,11 +46,11 @@ RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > inpu
         for (int j = 0; j < N; j++) {
             Point p(input[i][j]);
             vectpr<pair<int, int>> lowest;
-            int lowest_ele = INT_MAX;
+            int lowest_ele = input[i][j];
             for (int _ = 0; _ < 4; _++) {
                 int x = i + dx[_];
                 int y = j + dy[_];
-                if (!validPosition(x, y) || input[x][y] > lowest_ele) {
+                if (!validPosition(x, y) || input[x][y] > lowest_ele || input[x][y] == input[i][j]) {
                     continue;
                 }
                 if (input[x][y] < lowest_ele) {
@@ -71,7 +71,53 @@ RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > inpu
 
 // ========== Call at start and end of simulation ========== //
 void RainfallSim::startSim() {
-
+    bool finished = true;
+    while(true) {
+        this->timeSteps++;
+        // Traverse over all landscape points
+        for (int i = 0; i < this->N; i++) {
+            for (int j = 0; j < this->N; j++) {
+                Point p = this->landscape[i][j];
+                // 1) Receive a new raindrop (if it is still raining) for each point.
+                if (timeSteps <= this->M) {
+                    p.receiveFromSky();
+                }
+                // 2) If there are raindrops on a point, absorb water into the point
+                int remaining = p.getRemainingDrops();
+                if (remaining > 0) {
+                    p.absorb(this->A < remaining ? this->A : remaining);
+                }
+                // 3a) Calculate the number of raindrops that will next trickle to the lowest neighbor(s)
+                remaining = p.getRemainingDrops();
+                float trickleAmount = remaining <= 0 ? 0 : (remaining < 1 ? remaining : 1);
+                p.setTrickleAmount(trickleAmount);
+            }
+        }
+        // Make a second traversal over all landscape points
+        for (int i = 0; i < this->N; i++) {
+            for (int j = 0; j < this->N; j++) {
+                // For each point, use the calculated number of raindrops that will trickle to the
+                // lowest neighbor(s) to update the number of raindrops at each lowest neighbor
+                Point p = this->landscape[i][j];
+                int amount = p.getTrickleAmount();
+                if (amount > 0) {
+                    p.giveToNeighbor(amount);
+                    amount /= (float)p->neighbors.size();
+                    for (int _ = 0; _ < p->neighbors.size(); _++) {
+                        Point cur = this->landscape[p->neighbors[_].first][p->neighbors[_].second];
+                        cur.receiveFromNeighbor(amount);
+                    }
+                }
+                if (p.getRemainingDrops() > 0 || this->timeSteps < this->M) {
+                    finished = false;
+                }
+            }
+        }
+        if (finished) {
+            break;
+        }
+        finished = true; // go to next timestep  
+    }
 }
 
 void RainfallSim::generateOutput() {
