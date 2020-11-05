@@ -28,7 +28,7 @@ class Point {
         int getRemainingDrops();
         int getAbsorbedDrops();
         vector<pair<int, int> > getNeighbors();
-        float getTrickleAmount(float amount);
+        float getTrickleAmount();
 
 };
 

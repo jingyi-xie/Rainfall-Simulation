@@ -3,8 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <point.h>
-#include <rainfallsim.h>
+#include "rainfallsim.h"
 using namespace std;
 
 // Read input file

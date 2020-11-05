@@ -1,5 +1,5 @@
 #include <vector>
-#include <point.h>
+#include "point.h"
 
 using namespace std;
 
@@ -45,7 +45,7 @@ RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > inpu
         vector<Point> tmp;
         for (int j = 0; j < N; j++) {
             Point p(input[i][j]);
-            vectpr<pair<int, int>> lowest;
+            vector<pair<int, int>> lowest;
             int lowest_ele = input[i][j];
             for (int _ = 0; _ < 4; _++) {
                 int x = i + dx[_];
@@ -59,7 +59,7 @@ RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > inpu
                 }
                 lowest.push_back(pair<int, int>(x, y));
             }
-            for (int ind = 0; ind < lowest.size(); ind++) {
+            for (size_t ind = 0; ind < lowest.size(); ind++) {
                 p.addNeighbor(lowest[ind].first, lowest[ind].second);
             }
             tmp.push_back(p);
@@ -67,6 +67,8 @@ RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > inpu
         this->landscape.push_back(tmp);
     }
 }
+
+RainfallSim::~RainfallSim() {}
 
 
 // ========== Call at start and end of simulation ========== //
@@ -99,12 +101,12 @@ void RainfallSim::startSim() {
                 // For each point, use the calculated number of raindrops that will trickle to the
                 // lowest neighbor(s) to update the number of raindrops at each lowest neighbor
                 Point p = this->landscape[i][j];
-                int amount = p.getTrickleAmount();
+                float amount = p.getTrickleAmount();
                 if (amount > 0) {
                     p.giveToNeighbor(amount);
-                    amount /= (float)p->neighbors.size();
-                    for (int _ = 0; _ < p->neighbors.size(); _++) {
-                        Point cur = this->landscape[p->neighbors[_].first][p->neighbors[_].second];
+                    amount /= (float)p.getNeighbors().size();
+                    for (size_t _ = 0; _ < p.getNeighbors().size(); _++) {
+                        Point cur = this->landscape[p.getNeighbors()[_].first][p.getNeighbors()[_].second];
                         cur.receiveFromNeighbor(amount);
                     }
                 }
