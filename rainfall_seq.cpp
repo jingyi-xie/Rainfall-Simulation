@@ -3,8 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <point.h>
-#include <rainfallsim.h>
+#include "rainfallsim.h"
 using namespace std;
 
 // Read input file
@@ -50,9 +49,16 @@ int main(int argc, char *argv[]) {
     }
 
     // Rean input
+    const int P = atoi(argv[1]);
+    const int M = atoi(argv[2]);
+    const float A = atof(argv[3]);
+    const int N = atoi(argv[4]);
     vector<vector<int> > input = readFile(argv[5]);
 
     // Start simulation
+    RainfallSim simulator(P, M, A, N, input);
+    simulator.startSim();
+    simulator.generateOutput();
     
     return 0;
 }

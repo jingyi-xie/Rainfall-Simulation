@@ -4,8 +4,9 @@ using namespace std;
 class Point {
     private:
         int elevation;
-        int remainingDrops;
-        int absorbedDrops;
+        float remainingDrops;
+        float absorbedDrops;
+        float trickleAmount;
         vector<pair<int, int> > neighbors;
 
     public:
@@ -17,21 +18,27 @@ class Point {
 
         // Setters
         void receiveFromSky();
-        void receiveFromNeighbor(int amount);
-        void giveToNeighbor(int amount);
-        void absorb(int amount);
+        void receiveFromNeighbor(float amount);
+        void giveToNeighbor(float amount);
+        void absorb(float amount);
+        void setTrickleAmount(float amount);
 
         // Getters
         int getElevation();
-        int getRemainingDrops();
-        int getAbsorbedDrops();
+        float getRemainingDrops();
+        float getAbsorbedDrops();
         vector<pair<int, int> > getNeighbors();
+        float getTrickleAmount();
+
 };
 
 
 // ========== Constructor & Destructor ========== //
 Point::Point(int elevation) {
     this->elevation = elevation;
+    this->remainingDrops = 0.0;
+    this->absorbedDrops = 0.0;
+    this->trickleAmount = 0.0;
 }
 
 Point::~Point() {
@@ -48,16 +55,21 @@ void Point::receiveFromSky() {
     remainingDrops++;
 }
 
-void Point::receiveFromNeighbor(int amount) {
+void Point::receiveFromNeighbor(float amount) {
     remainingDrops += amount;
 }
 
-void Point::giveToNeighbor(int amount) {
+void Point::giveToNeighbor(float amount) {
     remainingDrops -= amount;
 }
 
-void Point::absorb(int amount) {
+void Point::absorb(float amount) {
     absorbedDrops += amount;
+    remainingDrops -= amount;
+}
+
+void Point::setTrickleAmount(float amount) {
+    trickleAmount = amount;
 }
 
 // ========== Getters ========== //
@@ -65,14 +77,18 @@ int Point::getElevation() {
     return this->elevation;
 }
 
-int Point::getRemainingDrops() {
+float Point::getRemainingDrops() {
     return remainingDrops;
 }
 
-int Point::getAbsorbedDrops() {
+float Point::getAbsorbedDrops() {
     return absorbedDrops;
 }
 
 vector<pair<int, int> > Point::getNeighbors() {
     return neighbors;
+}
+
+float Point::getTrickleAmount() {
+    return trickleAmount;
 }
