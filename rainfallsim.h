@@ -73,10 +73,10 @@ RainfallSim::~RainfallSim() {}
 
 // ========== Call at start and end of simulation ========== //
 void RainfallSim::startSim() {
-    bool finished = true;
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     while(true) {
+        bool finished = true;
         this->timeSteps++;
         // Traverse over all landscape points
         for (int i = 0; i < this->N; i++) {
@@ -93,8 +93,10 @@ void RainfallSim::startSim() {
                 }
                 // 3a) Calculate the number of raindrops that will next trickle to the lowest neighbor(s)
                 remaining = p->getRemainingDrops();
-                float trickleAmount = remaining <= 0 ? 0 : (remaining < 1 ? remaining : 1);
-                p->setTrickleAmount(trickleAmount);
+                if (p->getNeighbors().size() != 0) {
+                    float trickleAmount = remaining <= 0 ? 0 : (remaining < 1 ? remaining : 1);
+                    p->setTrickleAmount(trickleAmount);
+                }
             }
         }
         // Make a second traversal over all landscape points
@@ -124,7 +126,6 @@ void RainfallSim::startSim() {
             this->totalTime = (end_sec - start_sec) / 1000000000;
             break;
         }
-        finished = true; // go to next timestep  
     }
 }
 
