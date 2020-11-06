@@ -1,4 +1,5 @@
 #include <vector>
+#include <time.h>
 #include "point.h"
 
 using namespace std;
@@ -8,9 +9,8 @@ class RainfallSim {
         int P, M, N;
         float A;
         int timeSteps;
-        // int totalRainfall;
-        // int totalAbsorbed;
         vector<vector<Point> > landscape;
+        double totalTime;
 
     public:
         RainfallSim(int P, int M, float A, int N, vector<vector<int> > input);
@@ -66,6 +66,20 @@ RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > inpu
         }
         this->landscape.push_back(tmp);
     }
+
+    cout << "print elevation" << endl;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            cout << this->landscape[i][j].getElevation() << " ";
+        }
+        cout << endl;
+    }
+
+    cout << "M " << M << endl;
+    cout << "A " << A << endl;
+    cout << "N " << N << endl;
+
+    cout << "=====" << endl;
 }
 
 RainfallSim::~RainfallSim() {}
@@ -74,6 +88,8 @@ RainfallSim::~RainfallSim() {}
 // ========== Call at start and end of simulation ========== //
 void RainfallSim::startSim() {
     bool finished = true;
+    struct timespec start_time, end_time;
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
     while(true) {
         this->timeSteps++;
         // Traverse over all landscape points
@@ -85,7 +101,7 @@ void RainfallSim::startSim() {
                     p.receiveFromSky();
                 }
                 // 2) If there are raindrops on a point, absorb water into the point
-                int remaining = p.getRemainingDrops();
+                float remaining = p.getRemainingDrops();
                 if (remaining > 0) {
                     p.absorb(this->A < remaining ? this->A : remaining);
                 }
@@ -93,6 +109,7 @@ void RainfallSim::startSim() {
                 remaining = p.getRemainingDrops();
                 float trickleAmount = remaining <= 0 ? 0 : (remaining < 1 ? remaining : 1);
                 p.setTrickleAmount(trickleAmount);
+                cout << "1st traversal: trickle amount " << p.getTrickleAmount() << endl;
             }
         }
         // Make a second traversal over all landscape points
@@ -102,6 +119,7 @@ void RainfallSim::startSim() {
                 // lowest neighbor(s) to update the number of raindrops at each lowest neighbor
                 Point p = this->landscape[i][j];
                 float amount = p.getTrickleAmount();
+                cout << "2nd traversal: trickle amount " << amount << endl;
                 if (amount > 0) {
                     p.giveToNeighbor(amount);
                     amount /= (float)p.getNeighbors().size();
@@ -115,7 +133,19 @@ void RainfallSim::startSim() {
                 }
             }
         }
+
+
+
+
+        finished = true; // for test, DELETE
+
+
+
         if (finished) {
+            clock_gettime(CLOCK_MONOTONIC, &end_time);
+            double start_sec = (double)start_time.tv_sec * 1000000000.0 + (double)start_time.tv_nsec;
+            double end_sec = (double)end_time.tv_sec * 1000000000.0 + (double)end_time.tv_nsec;
+            this->totalTime = (end_sec - start_sec) / 1000000000;
             break;
         }
         finished = true; // go to next timestep  
@@ -124,7 +154,7 @@ void RainfallSim::startSim() {
 
 void RainfallSim::generateOutput() {
     cout << "Rainfall simulation completed in " << this->timeSteps << " time steps\n";
-    cout << "Runtime = xxx seconds\n";
+    cout << "Runtime = " << this->totalTime << " seconds\n";
     cout << "The following grid shows the number of raindrops absorbed at each point:\n";
     for (int i = 0; i < this->N; i++) {
         for (int j = 0; j < this->N; j++) {

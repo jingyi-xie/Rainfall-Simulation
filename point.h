@@ -25,8 +25,8 @@ class Point {
 
         // Getters
         int getElevation();
-        int getRemainingDrops();
-        int getAbsorbedDrops();
+        float getRemainingDrops();
+        float getAbsorbedDrops();
         vector<pair<int, int> > getNeighbors();
         float getTrickleAmount();
 
@@ -36,6 +36,9 @@ class Point {
 // ========== Constructor & Destructor ========== //
 Point::Point(int elevation) {
     this->elevation = elevation;
+    this->remainingDrops = 0.0;
+    this->absorbedDrops = 0.0;
+    this->trickleAmount = 0.0;
 }
 
 Point::~Point() {
@@ -74,11 +77,11 @@ int Point::getElevation() {
     return this->elevation;
 }
 
-int Point::getRemainingDrops() {
+float Point::getRemainingDrops() {
     return remainingDrops;
 }
 
-int Point::getAbsorbedDrops() {
+float Point::getAbsorbedDrops() {
     return absorbedDrops;
 }
 
