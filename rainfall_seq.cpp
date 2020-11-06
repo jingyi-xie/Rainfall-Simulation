@@ -25,7 +25,9 @@ vector<vector<int> > readFile(string fileName) {
          stringstream rowStream(line);
          vector<int> row;
          while (getline(rowStream, entry, ' ')) {
-             row.push_back(stoi(entry));
+             if (entry != "") {
+                row.push_back(stoi(entry));
+             }
          }
          matrix.push_back(row);
     }
