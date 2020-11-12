@@ -1,6 +1,9 @@
 #include <vector>
 #include <time.h>
 #include <thread>
+#include <mutex>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
 #include "point.h"
 
 using namespace std;

@@ -2,7 +2,7 @@
 CC = g++
 CPPFLAGS = -O3 -fno-stack-protector -pedantic -Wall -Werror
 
-LIB = -lm -lc -lrt -lpthread
+LIB = -lm -lc -lrt -pthread -lboost_system
 
 UNITFILES =
 
