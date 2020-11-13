@@ -8,15 +8,6 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    /* 
-    Usage
-    P = # of threads
-    M = # of simulation time steps with rainfall
-    A = absorption rate
-    N = dimension of lanescape
-    elevation_file = file name
-    ./rainfall <P> <M> <A> <N> <elevation_file>
-    */
     if (argc != 6) {
         cout << "./rainfall <P> <M> <A> <N> <elevation_file>\n";
         exit(EXIT_FAILURE);
