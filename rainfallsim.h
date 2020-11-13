@@ -2,6 +2,7 @@
 #include <time.h>
 #include <thread>
 #include <mutex>
+#include <boost/asio/io_service.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include "point.h"
@@ -27,8 +28,8 @@ class RainfallSim {
         void generateOutput();
 
         // Call during simulation: parallelization helpers
-        void newRain();
-        void trickle();
+        void newRain(int id, int size);
+        void trickle(int id, int size);
 
         // Chekers
         bool validPosition(int x, int y);
@@ -86,47 +87,11 @@ void RainfallSim::startSim_seq() {
     while(true) {
         this->finished = true;
         this->timeSteps++;
+        
         // Traverse over all landscape points
-        for (int i = 0; i < this->N; i++) {
-            for (int j = 0; j < this->N; j++) {
-                Point* p = this->landscape[i][j];
-                // 1) Receive a new raindrop (if it is still raining) for each point.
-                if (this->timeSteps <= this->M) {
-                    p->receiveFromSky();
-                }
-                // 2) If there are raindrops on a point, absorb water into the point
-                float remaining = p->getRemainingDrops();
-                if (remaining > 0) {
-                    p->absorb(this->A < remaining ? this->A : remaining);
-                }
-                // 3a) Calculate the number of raindrops that will next trickle to the lowest neighbor(s)
-                remaining = p->getRemainingDrops();
-                if (p->getNeighbors().size() != 0) {
-                    float trickleAmount = remaining <= 0 ? 0 : (remaining < 1 ? remaining : 1);
-                    p->setTrickleAmount(trickleAmount);
-                }
-            }
-        }
-        // Make a second traversal over all landscape points
-        for (int i = 0; i < this->N; i++) {
-            for (int j = 0; j < this->N; j++) {
-                // For each point, use the calculated number of raindrops that will trickle to the
-                // lowest neighbor(s) to update the number of raindrops at each lowest neighbor
-                Point* p = this->landscape[i][j];
-                float amount = p->getTrickleAmount();
-                if (amount > 0) {
-                    p->giveToNeighbor(amount);
-                    amount /= (float)p->getNeighbors().size();
-                    for (size_t _ = 0; _ < p->getNeighbors().size(); _++) {
-                        Point* cur = this->landscape[p->getNeighbors()[_].first][p->getNeighbors()[_].second];
-                        cur->receiveFromNeighbor(amount);
-                    }
-                }
-                if (p->getRemainingDrops() > 0 || this->timeSteps < this->M) {
-                    this->finished = false;
-                }
-            }
-        }
+        newRain(0, this->N);
+        trickle(0, this->N);
+
         if (this->finished) {
             clock_gettime(CLOCK_MONOTONIC, &end_time);
             double start_sec = (double)start_time.tv_sec * 1000000000.0 + (double)start_time.tv_nsec;
@@ -141,13 +106,17 @@ void RainfallSim::startSim_seq() {
 void RainfallSim::startSim_pt() {
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+    int size = this->N / this->P;
     while(true) {
         this->finished = true;
         this->timeSteps++;
 
         // Traverse over all landscape points
-        this->newRain();
-        this->trickle();
+        for (int i = 0; i < this->P; i++) {
+            this->newRain(i, size);
+            this->trickle(i, size);
+        }
         
         if (this->finished) {
             clock_gettime(CLOCK_MONOTONIC, &end_time);
@@ -177,8 +146,9 @@ void RainfallSim::generateOutput() {
 
 
 // ========== Call during simulation: parallelization helpers ========== //
-void RainfallSim::newRain() {
-    for (int i = 0; i < this->N; i++) {
+void RainfallSim::newRain(int id, int size) {
+    // Traverse over all landscape points
+    for (int i = id * size; i < (id + 1) * size; i++) {
         for (int j = 0; j < this->N; j++) {
             Point* p = this->landscape[i][j];
             // 1) Receive a new raindrop (if it is still raining) for each point.
@@ -201,9 +171,9 @@ void RainfallSim::newRain() {
 }
 
 
-void RainfallSim::trickle() {
+void RainfallSim::trickle(int id, int size) {
     // Make a second traversal over all landscape points
-    for (int i = 0; i < this->N; i++) {
+    for (int i = id * size; i < (id + 1) * size; i++) {
         for (int j = 0; j < this->N; j++) {
             // For each point, use the calculated number of raindrops that will trickle to the
             // lowest neighbor(s) to update the number of raindrops at each lowest neighbor
