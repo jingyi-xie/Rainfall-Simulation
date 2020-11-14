@@ -7,6 +7,7 @@ class Point {
         float remainingDrops;
         float absorbedDrops;
         float trickleAmount;
+        mutex mtx;
         vector<pair<int, int> > neighbors;
 
     public:
@@ -30,6 +31,9 @@ class Point {
         vector<pair<int, int> > getNeighbors();
         float getTrickleAmount();
 
+        // Locks
+        void lock();
+        void unlock();
 };
 
 
@@ -74,7 +78,7 @@ void Point::setTrickleAmount(float amount) {
 
 // ========== Getters ========== //
 int Point::getElevation() {
-    return this->elevation;
+    return elevation;
 }
 
 float Point::getRemainingDrops() {
@@ -91,4 +95,13 @@ vector<pair<int, int> > Point::getNeighbors() {
 
 float Point::getTrickleAmount() {
     return trickleAmount;
+}
+
+// ========== Locks ========== //
+void Point::lock() {
+    mtx.lock();
+}
+
+void Point::unlock() {
+    mtx.unlock();
 }

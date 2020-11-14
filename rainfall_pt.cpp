@@ -22,7 +22,12 @@ int main(int argc, char *argv[]) {
 
     // Start simulation
     RainfallSim simulator(P, M, A, N, input);
-    simulator.startSim_pt();
+    if (P == 1) {
+        simulator.startSim_seq();
+    }
+    else {
+        simulator.startSim_pt();
+    }
     simulator.generateOutput();
     
     return 0;

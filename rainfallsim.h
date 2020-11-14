@@ -107,16 +107,31 @@ void RainfallSim::startSim_pt() {
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
+    boost::asio::io_service ioService;
+    boost::thread_group threadpool;
+    boost::asio::io_service::work work(ioService);
+
+    for(int i = 0; i < this->P; i++){
+        threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
+    }
+
+    // Get problem size
     int size = this->N / this->P;
+
     while(true) {
         this->finished = true;
         this->timeSteps++;
 
         // Traverse over all landscape points
         for (int i = 0; i < this->P; i++) {
-            this->newRain(i, size);
-            this->trickle(i, size);
+            ioService.post(boost::bind(newRain_wrapper, i, size));
         }
+        threadpool.join_all();
+
+        for (int i = 0; i < this->P; i++) {
+            ioService.post(boost::bind(trickle_wrapper, i, size));
+        }
+        threadpool.join_all();
         
         if (this->finished) {
             clock_gettime(CLOCK_MONOTONIC, &end_time);
@@ -126,6 +141,7 @@ void RainfallSim::startSim_pt() {
             break;
         }
     }
+    ioService.stop();
 }
 
 
@@ -184,7 +200,17 @@ void RainfallSim::trickle(int id, int size) {
                 amount /= (float)p->getNeighbors().size();
                 for (size_t _ = 0; _ < p->getNeighbors().size(); _++) {
                     Point* cur = this->landscape[p->getNeighbors()[_].first][p->getNeighbors()[_].second];
-                    cur->receiveFromNeighbor(amount);
+                    
+                    // Update trickled rain
+                    int rem = p->getNeighbors()[_].first % size;
+                    if (rem == 0 || rem == size-1) {
+                        cur->lock();
+                        cur->receiveFromNeighbor(amount);
+                        cur->unlock();
+                    }
+                    else {
+                        cur->receiveFromNeighbor(amount);
+                    }
                 }
             }
             if (p->getRemainingDrops() > 0 || this->timeSteps < this->M) {
@@ -198,4 +224,12 @@ void RainfallSim::trickle(int id, int size) {
 // ========== Checkers ========== //
 bool RainfallSim::validPosition(int x, int y) {
     return x >= 0 && x < N && y >= 0 && y < N;
+}
+
+void newRain_wrapper(RainfallSim& sim, int i, int size) {
+    sim.newRain(i, size);
+}
+
+void trickle_wrapper(RainfallSim& sim, int i, int size) {
+    sim.trickle(i, size);
 }
