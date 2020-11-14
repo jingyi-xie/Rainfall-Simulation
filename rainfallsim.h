@@ -124,12 +124,12 @@ void RainfallSim::startSim_pt() {
 
         // Traverse over all landscape points
         for (int i = 0; i < this->P; i++) {
-            ioService.post(boost::bind(newRain_wrapper, i, size));
+            ioService.post(boost::bind(newRain, i, size));
         }
         threadpool.join_all();
 
         for (int i = 0; i < this->P; i++) {
-            ioService.post(boost::bind(trickle_wrapper, i, size));
+            ioService.post(boost::bind(trickle, i, size));
         }
         threadpool.join_all();
         
@@ -226,10 +226,10 @@ bool RainfallSim::validPosition(int x, int y) {
     return x >= 0 && x < N && y >= 0 && y < N;
 }
 
-void newRain_wrapper(RainfallSim& sim, int i, int size) {
-    sim.newRain(i, size);
-}
+// void newRain_wrapper(RainfallSim& sim, int i, int size) {
+//     sim.newRain(i, size);
+// }
 
-void trickle_wrapper(RainfallSim& sim, int i, int size) {
-    sim.trickle(i, size);
-}
+// void trickle_wrapper(RainfallSim& sim, int i, int size) {
+//     sim.trickle(i, size);
+// }
