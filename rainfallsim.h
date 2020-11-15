@@ -126,13 +126,8 @@ void RainfallSim::startSim_pt() {
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-<<<<<<< HEAD
-    // vector of argument structs for BOOST
-    // vector<arg_struct> structs;
-=======
     // array of argument structs for BOOST
     arg_struct *structs = new arg_struct[this->P];
->>>>>>> cf98c16cf2c534afb136ee62e262756fc4f1d67b
 
     // Get problem size
     int size = this->N / this->P;
@@ -143,27 +138,6 @@ void RainfallSim::startSim_pt() {
 
         // Traverse over all landscape points
         vector<thread*> container;
-<<<<<<< HEAD
-        for (int i = 0; i < this->P; i++) {
-            //structs.push_back(arg_struct());
-            arg_struct args = arg_struct();
-            args.sim = this;
-            args.id = i;
-            args.size = size;
-            container.push_back(new thread(&newRain_wrapper, (void *)&args));
-        }
-        for (int i = 0; i < this->P; i++) {
-            container[i]->join();
-        }
-        container.clear();
-
-        for (int i = 0; i < this->P; i++) {
-            arg_struct args = arg_struct();
-            args.sim = this;
-            args.id = i;
-            args.size = size;
-            container.push_back(new thread(&trickle_wrapper, (void *)&args));
-=======
         for (int i = 0; i < this->P; i++) {
             structs[i].sim = this;
             structs[i].id = i;
@@ -180,7 +154,6 @@ void RainfallSim::startSim_pt() {
             structs[i].id = i;
             structs[i].size = size;
             container.push_back(new thread(&trickle_wrapper, (void *)&structs[i]));
->>>>>>> cf98c16cf2c534afb136ee62e262756fc4f1d67b
         }
         for (int i = 0; i < this->P; i++) {
             container[i]->join();
