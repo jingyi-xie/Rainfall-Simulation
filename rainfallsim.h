@@ -126,16 +126,8 @@ void RainfallSim::startSim_pt() {
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-    boost::asio::io_service ioService;
-    boost::thread_group threadpool;
-    boost::asio::io_service::work work(ioService);
-
-    for(int i = 0; i < this->P; i++){
-        threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
-    }
-
     // vector of argument structs for BOOST
-    // vector<arg_struct> structs;
+    vector<arg_struct> structs;
 
     // Get problem size
     int size = this->N / this->P;
@@ -145,24 +137,31 @@ void RainfallSim::startSim_pt() {
         this->timeSteps++;
 
         // Traverse over all landscape points
+        vector<thread*> container;
         for (int i = 0; i < this->P; i++) {
-            //structs.push_back(arg_struct());
-            arg_struct args = arg_struct();
-            args.sim = this;
-            args.id = i;
-            args.size = size;
-            ioService.post(boost::bind(&newRain_wrapper, (void *)&args));
+            structs.push_back(arg_struct());
+            //arg_struct args = arg_struct();
+            structs[i].sim = this;
+            structs[i].id = i;
+            structs[i].size = size;
+            container.push_back(new thread(&newRain_wrapper, (void *)&structs[i]));
         }
-        threadpool.join_all();
+        for (int i = 0; i < this->P; i++) {
+            container[i]->join();
+        }
+        container.clear();
 
         for (int i = 0; i < this->P; i++) {
-            arg_struct args = arg_struct();
-            args.sim = this;
-            args.id = i;
-            args.size = size;
-            ioService.post(boost::bind(&trickle_wrapper, (void *)&args));
+            // arg_struct args = arg_struct();
+            // args.sim = this;
+            // args.id = i;
+            // args.size = size;
+            container.push_back(new thread(&trickle_wrapper, (void *)&structs[i]));
         }
-        threadpool.join_all();
+        for (int i = 0; i < this->P; i++) {
+            container[i]->join();
+        }
+        container.clear();
         
         if (this->finished) {
             clock_gettime(CLOCK_MONOTONIC, &end_time);
@@ -172,7 +171,6 @@ void RainfallSim::startSim_pt() {
             break;
         }
     }
-    ioService.stop();
 }
 
 
