@@ -134,7 +134,7 @@ void RainfallSim::startSim_pt() {
         threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
     }
 
-    // array of argument structs for BOOST
+    // vector of argument structs for BOOST
     vector<arg_struct> structs;
 
     // Get problem size
