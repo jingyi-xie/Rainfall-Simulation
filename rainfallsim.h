@@ -150,12 +150,18 @@ void RainfallSim::startSim_pt() {
             container[i]->join();
         }
         container.clear();
+        structs.clear();
 
         for (int i = 0; i < this->P; i++) {
             // arg_struct args = arg_struct();
             // args.sim = this;
             // args.id = i;
             // args.size = size;
+
+            structs.push_back(arg_struct());
+            structs[i].sim = this;
+            structs[i].id = i;
+            structs[i].size = size;
             container.push_back(new thread(&trickle_wrapper, (void *)&structs[i]));
         }
         for (int i = 0; i < this->P; i++) {
@@ -181,6 +187,15 @@ void RainfallSim::generateOutput() {
     for (int i = 0; i < this->N; i++) {
         for (int j = 0; j < this->N; j++) {
             cout << this->landscape[i][j]->getAbsorbedDrops();
+            if (j != this->N - 1) {
+                cout << " ";
+            }
+        }
+        cout << endl;
+    }
+    for (int i = 0; i < this->N; i++) {
+        for (int j = 0; j < this->N; j++) {
+            cout << this->landscape[i][j]->getRemainingDrops();
             if (j != this->N - 1) {
                 cout << " ";
             }
