@@ -1,10 +1,8 @@
 # ECE 565 Homework 5: Rainfall Simulation
 Usage:  
-    1. Install boost library on Ubuntu:  
-        ```sudo apt-get install libboost-all-dev```  
-    2. Build executables:  
+    1. Build executables:  
         ```make```  
-    3. Run program:
+    2. Run program:
     <ul>
     <li>P = # of threads</li> 
     <li>M = # of simulation time steps with rainfall</li>
@@ -13,6 +11,6 @@ Usage:
     <li>elevation_file = file name</li>
     </ul>
         ```./rainfall <P> <M> <A> <N> <elevation_file>```  
-    4. Validate results:  
+    3. Validate results:  
         ```python ./check.py [dimension] [validation file] [output file]```
 

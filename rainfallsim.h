@@ -2,9 +2,6 @@
 #include <time.h>
 #include <thread>
 #include <mutex>
-#include <boost/asio/io_service.hpp>
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
 #include "point.h"
 
 using namespace std;
@@ -35,6 +32,25 @@ class RainfallSim {
         bool validPosition(int x, int y);
 
 };
+
+struct arg_struct {
+    RainfallSim * sim;
+    int id;
+    int size;
+};
+
+// wrappers
+static void* newRain_wrapper(void* object) {
+    struct arg_struct * args = (struct arg_struct *)object;
+    reinterpret_cast<RainfallSim*>(args->sim)->newRain(args->id, args->size);
+    return 0;
+}
+
+static void* trickle_wrapper(void* object) {
+    struct arg_struct * args = (struct arg_struct *)object;
+    reinterpret_cast<RainfallSim*>(args->sim)->trickle(args->id, args->size);
+    return 0;
+}
 
 
 // ========== Constructor & Destructor ========== //
@@ -107,16 +123,39 @@ void RainfallSim::startSim_pt() {
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
+    // array of argument structs for BOOST
+    arg_struct *structs = new arg_struct[this->P];
+
+    // Get problem size
     int size = this->N / this->P;
+
     while(true) {
         this->finished = true;
         this->timeSteps++;
 
         // Traverse over all landscape points
+        vector<thread*> container;
         for (int i = 0; i < this->P; i++) {
-            this->newRain(i, size);
-            this->trickle(i, size);
+            structs[i].sim = this;
+            structs[i].id = i;
+            structs[i].size = size;
+            container.push_back(new thread(&newRain_wrapper, (void *)&structs[i]));
         }
+        for (int i = 0; i < this->P; i++) {
+            container[i]->join();
+        }
+        container.clear();
+
+        for (int i = 0; i < this->P; i++) {
+            structs[i].sim = this;
+            structs[i].id = i;
+            structs[i].size = size;
+            container.push_back(new thread(&trickle_wrapper, (void *)&structs[i]));
+        }
+        for (int i = 0; i < this->P; i++) {
+            container[i]->join();
+        }
+        container.clear();
         
         if (this->finished) {
             clock_gettime(CLOCK_MONOTONIC, &end_time);
@@ -184,7 +223,17 @@ void RainfallSim::trickle(int id, int size) {
                 amount /= (float)p->getNeighbors().size();
                 for (size_t _ = 0; _ < p->getNeighbors().size(); _++) {
                     Point* cur = this->landscape[p->getNeighbors()[_].first][p->getNeighbors()[_].second];
-                    cur->receiveFromNeighbor(amount);
+                    
+                    // Update trickled rain
+                    int rem = p->getNeighbors()[_].first % size;
+                    if (rem == 0 || rem == size-1) {
+                        cur->lock();
+                        cur->receiveFromNeighbor(amount);
+                        cur->unlock();
+                    }
+                    else {
+                        cur->receiveFromNeighbor(amount);
+                    }
                 }
             }
             if (p->getRemainingDrops() > 0 || this->timeSteps < this->M) {
