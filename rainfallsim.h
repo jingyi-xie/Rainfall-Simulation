@@ -2,9 +2,6 @@
 #include <time.h>
 #include <thread>
 #include <mutex>
-#include <boost/asio/io_service.hpp>
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
 #include "point.h"
 
 using namespace std;
@@ -42,7 +39,7 @@ struct arg_struct {
     int size;
 };
 
-// wrappers for BOOST
+// wrappers
 static void* newRain_wrapper(void* object) {
     struct arg_struct * args = (struct arg_struct *)object;
     reinterpret_cast<RainfallSim*>(args->sim)->newRain(args->id, args->size);
@@ -178,15 +175,6 @@ void RainfallSim::generateOutput() {
     for (int i = 0; i < this->N; i++) {
         for (int j = 0; j < this->N; j++) {
             cout << this->landscape[i][j]->getAbsorbedDrops();
-            if (j != this->N - 1) {
-                cout << " ";
-            }
-        }
-        cout << endl;
-    }
-    for (int i = 0; i < this->N; i++) {
-        for (int j = 0; j < this->N; j++) {
-            cout << this->landscape[i][j]->getRemainingDrops();
             if (j != this->N - 1) {
                 cout << " ";
             }
