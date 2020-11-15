@@ -135,7 +135,7 @@ void RainfallSim::startSim_pt() {
     }
 
     // vector of argument structs for BOOST
-    vector<arg_struct> structs;
+    // vector<arg_struct> structs;
 
     // Get problem size
     int size = this->N / this->P;
@@ -146,16 +146,21 @@ void RainfallSim::startSim_pt() {
 
         // Traverse over all landscape points
         for (int i = 0; i < this->P; i++) {
-            structs.push_back(arg_struct());
-            structs[i].sim = this;
-            structs[i].id = i;
-            structs[i].size = size;
-            ioService.post(boost::bind(&newRain_wrapper, (void *)&structs[i]));
+            //structs.push_back(arg_struct());
+            arg_struct args = arg_struct();
+            args.sim = this;
+            args.id = i;
+            args.size = size;
+            ioService.post(boost::bind(&newRain_wrapper, (void *)&args));
         }
         threadpool.join_all();
 
         for (int i = 0; i < this->P; i++) {
-            ioService.post(boost::bind(&trickle_wrapper, (void *)&structs[i]));
+            arg_struct args = arg_struct();
+            args.sim = this;
+            args.id = i;
+            args.size = size;
+            ioService.post(boost::bind(&trickle_wrapper, (void *)&args));
         }
         threadpool.join_all();
         
