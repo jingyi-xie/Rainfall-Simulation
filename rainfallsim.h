@@ -36,6 +36,25 @@ class RainfallSim {
 
 };
 
+struct arg_struct {
+    RainfallSim * sim;
+    int id;
+    int size;
+};
+
+// wrappers for BOOST
+static void* newRain_wrapper(void* object) {
+    struct arg_struct * args = (struct arg_struct *)object;
+    reinterpret_cast<RainfallSim*>(args->sim)->newRain(args->id, args->size);
+    return 0;
+}
+
+static void* trickle_wrapper(void* object) {
+    struct arg_struct * args = (struct arg_struct *)object;
+    reinterpret_cast<RainfallSim*>(args->sim)->trickle(args->id, args->size);
+    return 0;
+}
+
 
 // ========== Constructor & Destructor ========== //
 RainfallSim::RainfallSim(int P, int M, float A, int N, vector<vector<int> > input) {
@@ -115,6 +134,9 @@ void RainfallSim::startSim_pt() {
         threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioService));
     }
 
+    // array of argument structs for BOOST
+    vector<arg_struct> structs;
+
     // Get problem size
     int size = this->N / this->P;
 
@@ -124,12 +146,16 @@ void RainfallSim::startSim_pt() {
 
         // Traverse over all landscape points
         for (int i = 0; i < this->P; i++) {
-            ioService.post(boost::bind(newRain, i, size));
+            structs.push_back(arg_struct());
+            structs[i].sim = this;
+            structs[i].id = i;
+            structs[i].size = size;
+            ioService.post(boost::bind(&newRain_wrapper, (void *)&structs[i]));
         }
         threadpool.join_all();
 
         for (int i = 0; i < this->P; i++) {
-            ioService.post(boost::bind(trickle, i, size));
+            ioService.post(boost::bind(&trickle_wrapper, (void *)&structs[i]));
         }
         threadpool.join_all();
         
@@ -225,11 +251,3 @@ void RainfallSim::trickle(int id, int size) {
 bool RainfallSim::validPosition(int x, int y) {
     return x >= 0 && x < N && y >= 0 && y < N;
 }
-
-// void newRain_wrapper(RainfallSim& sim, int i, int size) {
-//     sim.newRain(i, size);
-// }
-
-// void trickle_wrapper(RainfallSim& sim, int i, int size) {
-//     sim.trickle(i, size);
-// }
