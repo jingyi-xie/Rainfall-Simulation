@@ -126,8 +126,8 @@ void RainfallSim::startSim_pt() {
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-    // vector of argument structs for BOOST
-    vector<arg_struct> structs;
+    // array of argument structs for BOOST
+    arg_struct *structs = new arg_struct[this->P];
 
     // Get problem size
     int size = this->N / this->P;
@@ -139,8 +139,6 @@ void RainfallSim::startSim_pt() {
         // Traverse over all landscape points
         vector<thread*> container;
         for (int i = 0; i < this->P; i++) {
-            structs.push_back(arg_struct());
-            //arg_struct args = arg_struct();
             structs[i].sim = this;
             structs[i].id = i;
             structs[i].size = size;
@@ -150,15 +148,8 @@ void RainfallSim::startSim_pt() {
             container[i]->join();
         }
         container.clear();
-        structs.clear();
 
         for (int i = 0; i < this->P; i++) {
-            // arg_struct args = arg_struct();
-            // args.sim = this;
-            // args.id = i;
-            // args.size = size;
-
-            structs.push_back(arg_struct());
             structs[i].sim = this;
             structs[i].id = i;
             structs[i].size = size;
